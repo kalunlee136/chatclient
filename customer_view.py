@@ -4,7 +4,7 @@ from network import Handler, poll
 import sys
 from threading import Thread
 from time import sleep
-from client import Client, periodic_poll
+from controller import Client,periodic_poll
 
 myname = raw_input('What is your name? ')
 
