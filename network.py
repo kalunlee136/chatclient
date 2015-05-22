@@ -124,8 +124,9 @@ class Listener(asyncore.dispatcher):
     # callbacks you override
     def on_accept(self, h):
         pass
-    
-    
+
+
+############ LOOP #################   
 def poll(timeout=0):
     asyncore.loop(timeout=timeout, count=1)  # return right away
 
@@ -136,6 +137,7 @@ def poll_for(duration):  # in seconds
     while time.time() - start < duration:
         poll(duration - (time.time() - start))
 
+##################################
 
 def get_my_ip():
     """ Get my network interface's IP, not localhost's IP.

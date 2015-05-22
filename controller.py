@@ -1,7 +1,7 @@
 #Controller
 '''Reasoning behind design:''' 
 '''The Client, MyHandler classes and periodic_poll function control the flow 
-in the chat system. The Client class either sends messages to the server or prints them
+in the chat system. The Client class directs to the m sends messages to the server or prints them
 on the view (this is the definition of what a controller should do). MyHandler class 
 does the exact same thing but with the Server/Listener. '''
 
@@ -39,8 +39,9 @@ class MyHandler(Handler):
         #self.do_send(msg)
 
 
-if __name__ == '__main__':
-    port = 8888
-    server = Listener(port, MyHandler)
-    while 1:
-        poll(timeout=0.05) # in seconds
+#if __name__ == '__main__':
+    #treats it like the server
+    #port = 8888
+    #server = Listener(port, MyHandler)
+    #while 1:
+        #poll(timeout=0.05) # in seconds

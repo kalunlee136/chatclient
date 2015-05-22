@@ -1,21 +1,7 @@
 from network import Listener, Handler, poll
-
+from controller import MyHandler
  
 handlers = {}  # map client handler to user name
- 
-class MyHandler(Handler):
-     
-    def on_open(self):
-        pass
-         
-    def on_close(self):
-        pass
-     
-    def on_msg(self, msg):
-        print msg
-        #self.do_send(msg)
-
- 
  
 port = 8888
 server = Listener(port, MyHandler)
