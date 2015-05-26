@@ -1,22 +1,23 @@
 '''chat agent view'''
 
-from network import Handler, poll
-import sys
 import controller
+from network import Handler, poll, Client, periodic_poll
+import sys
 from threading import Thread
 from time import sleep
-from controller import Client, periodic_poll
+import asyncore
 
 
-#filler sentence
-print("Customer stuff")
-host, port = 'localhost', 8888
+
+host, port = "localhost", 8888
 client = Client(host, port)
                          
-thread = Thread(target=periodic_poll)
+thread = Thread(target=asyncore.loop)
 thread.daemon = True  # die when the main thread dies 
 thread.start()
 
+client.do_send({'speak': 'agent', 'txt': 'Chat agent has connected'})
+
 while 1:
     mytxt = sys.stdin.readline().rstrip()
-    client.do_send({'speak': "Chat Agent", 'txt': mytxt})
+    client.do_send({'speak': 'agent', 'txt': mytxt})

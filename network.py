@@ -40,43 +40,51 @@ import json
 import os
 import socket
 import time
+from time import sleep
 
 
+        
 class Handler(asynchat.async_chat):
     
     def __init__(self, host, port, sock=None):
+        
+        self.copy = ''
         if sock:  # passive side: Handler automatically created by a Listener
+            print " NEW ONE MADE"
             asynchat.async_chat.__init__(self, sock)
+
         else:  # active side: Handler created manually
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP
             asynchat.async_chat.__init__(self, sock)
             self.connect((host, port))  # asynchronous and non-blocking
+        
         self.set_terminator('\0') #sets the end of a message 
         self._buffer = [] #outgoing queue
-        self.received = []
+      
     
     '''reads incoming message from client and puts it into our outgoing queue'''
-    def collect_incoming_data(self, data):
+    def collect_incoming_data(self, data):      
         self._buffer.append(data)
-        self.received.append(data)
-
+     
+    
     '''decodes the received message, empties the queue and runs on_msg'''
     def found_terminator(self):
         msg = self.decode(''.join(self._buffer))
         self._buffer = []
         self.on_msg(msg)
-    
+        
     def handle_close(self):
         self.close()
         self.on_close()
 
     def handle_connect(self):  # called on the active side
+        print "Connecting"
         self.on_open()
         
     # API you can use
     def do_send(self, msg):
         self.push(self.encode(msg) + '\0') #sending messages
-        
+
     def do_close(self):
         self.handle_close()  # will call self.on_close
     
@@ -89,7 +97,7 @@ class Handler(asynchat.async_chat):
         return json.loads(msg)
     
     # callbacks you should override
-    def on_open(self):
+    def on_open(self,data):
         pass
         
     def on_close(self):
@@ -98,15 +106,38 @@ class Handler(asynchat.async_chat):
     def on_msg(self, data):
         pass
     
+class Client(Handler):
+    def on_open(self):
+        self.do_send({'name':'client'})
+        
+        print "CLIENT ON_OPEN"
+
+    def on_close(self):
+        self.close()
+        print "CLIENT ON_CLOSE"
     
+    def on_msg(self, msg):
+        print msg
+
+
+    
+def periodic_poll():
+    while 1:
+        poll()
+        sleep(0.05)  # seconds
+            
 class Listener(asyncore.dispatcher):
     
-    def __init__(self, port, handler_class):
+    def __init__(self, port, handler_class,Model):
         asyncore.dispatcher.__init__(self)
         self.handler_class = handler_class
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP
-        self.bind(('', port))
+        self.bind(('localhost', port))
+
         self.listen(2)  # max 5 incoming connections at once (Windows' limit)
+        self.model = Model
+        #self.handlers = []
+        
 
     def handle_accept(self):  # called on the passive side
         #self.accept() returns values in this format: (socket,(ip address, port))  
@@ -114,9 +145,14 @@ class Listener(asyncore.dispatcher):
         if accept_result:  # None if connection blocked or aborted
             sock, (host, port) = accept_result
             h = self.handler_class(host, port, sock)
+            #self.handlers.append(h)
+            print(11111111111111)
             self.on_accept(h)
             h.on_open()
-    
+            
+    #def handle_write(self):
+       #pass
+               
     # API you can use
     def stop(self):
         self.close()
@@ -125,8 +161,8 @@ class Listener(asyncore.dispatcher):
     def on_accept(self, h):
         pass
 
-
 ############ LOOP #################   
+
 def poll(timeout=0):
     asyncore.loop(timeout=timeout, count=1)  # return right away
 
@@ -145,21 +181,21 @@ def get_my_ip():
     """
     ip = socket.gethostbyname(socket.gethostname())
     # Some versions of Ubuntu may return 127.0.0.1
-    if os.name != "nt" and ip.startswith("127."):
-        import fcntl  # not available on Windows
-        import struct
-        interfaces = ["eth0", "eth1", "eth2", "wlan0",
-                      "wlan1", "wifi0", "ath0", "ath1", "ppp0"]
-        for ifname in interfaces:
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                ip = socket.inet_ntoa(fcntl.ioctl(s.fileno(),
-                                                  0x8915,  # SIOCGIFADDR
-                                                  struct.pack('256s', ifname[:15])
-                                                  )[20:24])
-                break;
-            except IOError:
-                pass
+#     if os.name != "nt" and ip.startswith("127."):
+#         #import fcntl  # not available on Windows
+#         import struct
+#         interfaces = ["eth0", "eth1", "eth2", "wlan0",
+#                       "wlan1", "wifi0", "ath0", "ath1", "ppp0"]
+#         for ifname in interfaces:
+#             try:
+#                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#                 ip = socket.inet_ntoa(fcntl.ioctl(s.fileno(),
+#                                                   0x8915,  # SIOCGIFADDR
+#                                                   struct.pack('256s', ifname[:15])
+#                                                   )[20:24])
+#                 break;
+#             except IOError:
+#                 pass
     return ip
 
 
