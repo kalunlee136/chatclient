@@ -41,14 +41,17 @@ class ControllerHandler(Handler):
     #server shoots the message back to the clients
     def on_msg(self, msg):
         print ("SENDING Back")
-        #print msg
+        
+        #//To Do: 
+        #    Exclude yourself and make it echo back ONLY to the other client. 
+        #    
 
-        #if 'speak' in msg:
-        #   if msg['speak'] == 'agent':
-        #        print msg['speak']
-        #    elif msg['speak'] == 'client':
-        #        print msg['speak']
-
+        #//Currently functionality: 
+        # echos back messages to all clients connected (including yourself)
+        # Does multiple checks with multiple different callbacks:
+            #if it's a prompt: shoot back what the customer's prompt is
+            #if it's normal convo ('speak') it echo messages in this format: "name: text"  
+                          
         for c in connections:
             #c.do_send(msg)
 
@@ -67,10 +70,14 @@ class Controller(Listener, Model):
         print "Controller on_accept"
         #self.model exists in the Listener class
         #Does not allow more than 2 people connected.
+        #Checks if there are less than 2 clients connected
+        #if yes, adds that client to our list
+        #if no, does not connect and tells the user the room is full.
+
         if len(connections) < 2:
             #self.model.connections.append(h.addr)
             connections.append(h)
-            print(connections)
+            
         else:
             print "Chat room exceeded amount of connections"
         

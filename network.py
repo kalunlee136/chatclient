@@ -6,32 +6,6 @@ With inspiration from:
 http://pymotw.com/2/asynchat/
 http://code.google.com/p/podsixnet/
 http://docstore.mik.ua/orelly/other/python/0596001886_pythonian-chp-19-sect-3.html
-
-#################
-# Echo server:
-#################
-from network import Listener, Handler, poll
-class MyHandler(Handler):
-    def on_msg(self, data):
-        self.do_send(data)
-server = Listener(8888, MyHandler)
-while 1:
-    poll()
-
-#################
-# One-message client:
-#################
-from network import Handler, poll
-done = False
-class Client(Handler):
-    def on_open(self):
-        self.do_send({'a': [1,2], 5: 'hi'})
-        global done
-        done = True
-client = Client('localhost', 8888)
-while not done:
-    poll()
-client.do_close()
 """
 
 import asynchat
@@ -136,9 +110,7 @@ class Listener(asyncore.dispatcher):
 
         self.listen(2)  # max 5 incoming connections at once (Windows' limit)
         self.model = Model
-        #self.handlers = []
         
-
     def handle_accept(self):  # called on the passive side
         #self.accept() returns values in this format: (socket,(ip address, port))  
         accept_result = self.accept()
@@ -149,10 +121,7 @@ class Listener(asyncore.dispatcher):
             print(11111111111111)
             self.on_accept(h)
             h.on_open()
-            
-    #def handle_write(self):
-       #pass
-               
+                          
     # API you can use
     def stop(self):
         self.close()
@@ -198,7 +167,35 @@ def get_my_ip():
 #                 pass
     return ip
 
+#################
+# Echo server:
+#################
+"""
+///Stuff from the original source code
 
+from network import Listener, Handler, poll
+class MyHandler(Handler):
+    def on_msg(self, data):
+        self.do_send(data)
+server = Listener(8888, MyHandler)
+while 1:
+    poll()
+
+#################
+# One-message client:
+#################
+from network import Handler, poll
+done = False
+class Client(Handler):
+    def on_open(self):
+        self.do_send({'a': [1,2], 5: 'hi'})
+        global done
+        done = True
+client = Client('localhost', 8888)
+while not done:
+    poll()
+client.do_close()
+"""
                 
 if __name__ == '__main__':
     print get_my_ip()
