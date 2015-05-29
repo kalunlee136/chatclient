@@ -1,15 +1,16 @@
 '''chat agent view'''
 
-import controller
-from network import Handler, poll, Client, periodic_poll
+from controller import Client
+from network import Handler, poll, periodic_poll, Client
 import sys
 from threading import Thread
 from time import sleep
 import asyncore
 
 
-
-host, port = "localhost", 8888
+#replace host with ip address
+#192.168.1.105
+host, port = 'localhost', 8888
 client = Client(host, port)
                          
 thread = Thread(target=asyncore.loop)

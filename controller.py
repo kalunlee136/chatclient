@@ -1,13 +1,9 @@
 #Contains Model and Controller
 #Run this file to start the server.
-from network import Listener, Handler, poll, Client
+from network import Listener, Handler, poll,Client
 import sys
 from threading import Thread
 import asyncore
-
-
-#handlers = {}  # map client handler to user name
-connections = [] # real map client handler to user name
 
 #stores the amount of users connected.
 class Model():
@@ -27,39 +23,34 @@ class Model():
         
     def set_user(self, bool):
         self.user = bool
-    
+
+
+handlers = []  # map client handler to user name
+
 ####### server logic/functionality #########
 class ControllerHandler(Handler):
 
+    #append client to our list of clients.
     def on_open(self):
-        print "ControllerHandler Open Handler"
+       print "ControllerHandler Open Handler"
+       handlers.append(self)
+      
 
     def on_close(self):
-        #Client.on_close()
         print "ControllerHandler on_close"
 
     #server shoots the message back to the clients
     def on_msg(self, msg):
         print ("SENDING Back")
         
-        #//To Do: 
-        #    Exclude yourself and make it echo back ONLY to the other client. 
-        #    
+        for c in handlers:
+            if c != self:
+                if 'prompt' in msg: 
+                    c.do_send('Customer is asking about: '+ msg['prompt'])
 
-        #//Currently functionality: 
-        # echos back messages to all clients connected (including yourself)
-        # Does multiple checks with multiple different callbacks:
-            #if it's a prompt: shoot back what the customer's prompt is
-            #if it's normal convo ('speak') it echo messages in this format: "name: text"  
-                          
-        for c in connections:
-            #c.do_send(msg)
-
-            if 'prompt' in msg: 
-                c.do_send('Customer is asking about: '+ msg['prompt'])
-
-            if 'speak' in msg:
-                c.do_send(msg['speak']+':'+' '+msg['txt'])
+                if 'speak' in msg:
+                    c.do_send(msg['speak']+':'+' '+msg['txt'])
+            
             #if 'speak' in msg:
             #    self.copy += msg['speak']+':'+' '+msg['txt']+ '\t\n'
             #    print self.copy
@@ -74,9 +65,11 @@ class Controller(Listener, Model):
         #if yes, adds that client to our list
         #if no, does not connect and tells the user the room is full.
 
-        if len(connections) < 2:
+        if len(handlers) < 2:
             #self.model.connections.append(h.addr)
-            connections.append(h)
+            self.model.connections.append(h)
+            print 'self.model.connections'
+            print(self.model.connections)
             
         else:
             print "Chat room exceeded amount of connections"

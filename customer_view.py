@@ -1,7 +1,7 @@
 '''Customer View'''
 
-import controller
-from network import Handler, poll, Client, periodic_poll
+from controller import Client
+from network import Handler, poll, periodic_poll, Client
 import sys
 from threading import Thread
 from time import sleep
@@ -9,6 +9,8 @@ from time import sleep
 
 myname = raw_input('What is your name? ')
 
+#replace host with ip address
+#192.168.1.105
 host, port = 'localhost', 8888
 client = Client(host, port)
 client.do_send({'join': myname})
@@ -50,4 +52,4 @@ while 1:
     elif mytxt == ':e':
     	print "Trivia: Did you know cats have 9 lives?" 
     else: 	 
-    	client.do_send({'speak': 'client', 'txt': mytxt})
+    	client.do_send({'speak': myname, 'txt': mytxt})

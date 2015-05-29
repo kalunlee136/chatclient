@@ -79,19 +79,18 @@ class Handler(asynchat.async_chat):
         
     def on_msg(self, data):
         pass
-    
-class Client(Handler):
-    def on_open(self):
-        self.do_send({'name':'client'})
-        
-        print "CLIENT ON_OPEN"
 
-    def on_close(self):
-        self.close()
-        print "CLIENT ON_CLOSE"
+class Client(Handler):
+
+     def on_open(self):
+         print "CLIENT ON_OPEN"
+
+     def on_close(self):
+         self.close()
+         print "CLIENT ON_CLOSE"
     
-    def on_msg(self, msg):
-        print msg
+     def on_msg(self, msg):
+         print msg
 
 
     
@@ -106,7 +105,7 @@ class Listener(asyncore.dispatcher):
         asyncore.dispatcher.__init__(self)
         self.handler_class = handler_class
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP
-        self.bind(('localhost', port))
+        self.bind(('', port))
 
         self.listen(2)  # max 5 incoming connections at once (Windows' limit)
         self.model = Model
@@ -118,7 +117,6 @@ class Listener(asyncore.dispatcher):
             sock, (host, port) = accept_result
             h = self.handler_class(host, port, sock)
             #self.handlers.append(h)
-            print(11111111111111)
             self.on_accept(h)
             h.on_open()
                           
@@ -150,21 +148,21 @@ def get_my_ip():
     """
     ip = socket.gethostbyname(socket.gethostname())
     # Some versions of Ubuntu may return 127.0.0.1
-#     if os.name != "nt" and ip.startswith("127."):
-#         #import fcntl  # not available on Windows
-#         import struct
-#         interfaces = ["eth0", "eth1", "eth2", "wlan0",
-#                       "wlan1", "wifi0", "ath0", "ath1", "ppp0"]
-#         for ifname in interfaces:
-#             try:
-#                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#                 ip = socket.inet_ntoa(fcntl.ioctl(s.fileno(),
-#                                                   0x8915,  # SIOCGIFADDR
-#                                                   struct.pack('256s', ifname[:15])
-#                                                   )[20:24])
-#                 break;
-#             except IOError:
-#                 pass
+    if os.name != "nt" and ip.startswith("127."):
+        #import fcntl  # not available on Windows
+        import struct
+        interfaces = ["eth0", "eth1", "eth2", "wlan0",
+                      "wlan1", "wifi0", "ath0", "ath1", "ppp0"]
+        for ifname in interfaces:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                ip = socket.inet_ntoa(fcntl.ioctl(s.fileno(),
+                                                  0x8915,  # SIOCGIFADDR
+                                                  struct.pack('256s', ifname[:15])
+                                                  )[20:24])
+                break;
+            except IOError:
+                pass
     return ip
 
 #################
