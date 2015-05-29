@@ -38,19 +38,20 @@ class ControllerHandler(Handler):
 
     def on_close(self):
         print "ControllerHandler on_close"
+        open("log.txt", 'w').close()
 
     #server shoots the message back to the clients
     def on_msg(self, msg):
         print ("SENDING Back")
-        
-        for c in handlers:
-            if c != self:
-                if 'prompt' in msg: 
-                    c.do_send('Customer is asking about: '+ msg['prompt'])
-
-                if 'speak' in msg:
-                    c.do_send(msg['speak']+':'+' '+msg['txt'])
-            
+        with open('log.txt', 'a') as outfile:
+            for c in handlers:
+                if c != self:
+                    if 'prompt' in msg: 
+                        c.do_send('Customer is asking about: '+ msg['prompt'])
+                        outfile.write('Customer is asking about: '+ msg['prompt'])
+                    if 'speak' in msg:
+                        c.do_send(msg['speak']+':'+' '+msg['txt'])
+                        outfile.write('\n'+msg['speak']+':'+' '+msg['txt'])
             #if 'speak' in msg:
             #    self.copy += msg['speak']+':'+' '+msg['txt']+ '\t\n'
             #    print self.copy
