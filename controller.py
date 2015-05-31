@@ -64,18 +64,21 @@ class ControllerHandler(Handler):
     def on_msg(self, msg):
         print ("SENDING Back")
         with open('log.txt', 'a') as outfile:
-            for c in handlers:
-                if handlers[c] != self:
-                    if 'prompt' in msg:
-                        handlers[c].do_send('Customer is asking about: '+ msg['prompt'])
-                        outfile.write('Customer is asking about: '+ msg['prompt'])
+            if self in handlers.values():
+                print handlers.values()
+                print "##############"
+                for c in handlers:
+                    if handlers[c] != self:
+                        if 'prompt' in msg:
+                            handlers[c].do_send('Customer is asking about: '+ msg['prompt'])
+                            outfile.write('Customer is asking about: '+ msg['prompt'])
 
-                    if 'speak' in msg:
-                        handlers[c].do_send(msg['speak']+':'+' '+msg['txt'])
-                        outfile.write('\n'+msg['speak']+':'+' '+msg['txt'])
+                        if 'speak' in msg:
+                            handlers[c].do_send(msg['speak']+':'+' '+msg['txt'])
+                            outfile.write('\n'+msg['speak']+':'+' '+msg['txt'])
 
-                    if 'msg' in msg:
-                        handlers[c].do_send(msg)
+                        if 'msg' in msg:
+                            handlers[c].do_send(msg)
                  
 class Controller(Listener, Model):
     

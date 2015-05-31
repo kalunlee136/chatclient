@@ -51,10 +51,10 @@ while 1:
 
     #customer console options
     if mytxt == ':q':
+        print client
     	client.on_close()
     elif mytxt == ':s':
-    	pass
-    	#TO DO: save a copy of the chat
+    	print "Your conversation has been logged."
     elif mytxt == ':e':
     	print "Trivia: Did you know cats have 9 lives?" 
     else: 	 
