@@ -28,60 +28,74 @@ class Model():
         self.user = bool
 
 
-handlers = []  # map client handler to user name
+handlers = {} # map client handler to user name
 q = Queue.Queue()
 ####### server logic/functionality #########
 class ControllerHandler(Handler):
 
     #append client to our list of clients.
     def on_open(self):
-        print "ControllerHandler Open Handler"
-        # if len(handlers) < 2:
-        #     handlers.append(self)
-        #     print '=================handlers================='
-        #     print handlers
-        # else:
-        #     print "Chat is full, wait for a bit"
-        #     q.put(self)
-        # print len(handlers)
-        # print q.qsize()
+        for key, value in handlers.items():
+            if value == self:
+                host = handlers[key]
+                if key == 'agent':
+                    value.do_send('WOOOOOOOOOOOOOO')
 
     def on_close(self):
         print "ControllerHandler on_close"
         open("log.txt", 'w').close()
-        #handlers.remove(self)
+        del handlers['client']
+        a = q.get()
+        handlers['client'] = a
         self.close()
-        print handlers
-        #self.do_send('You have disconnected from chat')
-      
-        
+    
+    # def _move_users(self):
+    #     if len(handlers) < 2:
+    #         if 'client' in handlers.keys():
+    #             handlers['agent'] = self
+    #         else:
+    #             handlers['client'] = self
+     
+    #     else:
+    #         self.do_send("Chat is full, wait for a bit")
+    #         q.put(self)
 
     #server shoots the message back to the clients
     def on_msg(self, msg):
         print ("SENDING Back")
         with open('log.txt', 'a') as outfile:
             for c in handlers:
-                if c != self:
-                    if 'prompt' in msg: 
-                        c.do_send('Customer is asking about: '+ msg['prompt'])
+                if handlers[c] != self:
+                    if 'prompt' in msg:
+                        handlers[c].do_send('Customer is asking about: '+ msg['prompt'])
                         outfile.write('Customer is asking about: '+ msg['prompt'])
 
                     if 'speak' in msg:
-                        c.do_send(msg['speak']+':'+' '+msg['txt'])
+                        handlers[c].do_send(msg['speak']+':'+' '+msg['txt'])
                         outfile.write('\n'+msg['speak']+':'+' '+msg['txt'])
+
+                    if 'msg' in msg:
+                        handlers[c].do_send(msg)
                  
 class Controller(Listener, Model):
-        
-    def on_accept(self, h):
-        print 'CONTROLLER ON ACCEPT'
-        print len(self.model.handlers)
-        print self.model.q.qsize()
+    
+    #add new connections to our handlers dict
+    def on_accept(self, host):
         #don't accept multiple agent/viewers
+        if len(handlers) < 2:
+            if 'client' in handlers.keys():
+                handlers['agent'] = host
+            else:
+                handlers['client'] = host   
+        else:
+            host.do_send("Chat is full, wait for a bit")
+            q.put(host)
+     
 
 ###########################################
 
 if __name__ == '__main__':
-    print("Testing")
+    print("Server running")
     port = 8888
     model = Model()
     controller = Controller(port, ControllerHandler,model) #uses Listener parameters

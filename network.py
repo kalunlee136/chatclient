@@ -83,7 +83,7 @@ class Client(Handler):
 
      def on_open(self):
          print "CLIENT ON_OPEN"
-         #self.do_send()
+         print self
 
      def on_close(self):
          self.close()
@@ -109,7 +109,8 @@ class Listener(asyncore.dispatcher):
         self.listen(5)  # max 5 incoming connections at once (Windows' limit)
         self.model = Model
         
-    def handle_accept(self):  # called on the passive side
+    def handle_accept(self):  
+        # called on the passive side
         #self.accept() returns values in this format: (socket,(ip address, port))
         #h = is an instance of controller class
         
@@ -117,18 +118,9 @@ class Listener(asyncore.dispatcher):
         if accept_result:  # None if connection blocked or aborted
             sock, (host, port) = accept_result
             h = self.handler_class(host, port, sock)
-            if self.model.count < 2: 
-                self.model.count+=1
-                if 'client' in self.model.handlers:
-                    self.model.handlers['agent'] = h
-                else:
-                    self.model.handlers['client'] = h        
-                self.on_accept(h)
-                h.on_open()
-            else:
-                self.model.q.put(h)
-            print self.model.handlers
-            print self.model.q
+            self.on_accept(h)      
+            #if self.on_accept(h):
+            h.on_open()
                           
     # API you can use
     def stop(self):
