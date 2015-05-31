@@ -1,7 +1,6 @@
 '''Customer View'''
 
-from controller import Client
-from network import Handler, poll, periodic_poll, Client
+from network import Handler, poll, periodic_poll, Client, get_my_ip
 import sys
 from threading import Thread
 from time import sleep
@@ -11,19 +10,26 @@ myname = raw_input('What is your name? ')
 
 #replace host with ip address
 #192.168.1.105
-host, port = 'localhost', 8888
+#host = raw_input('What host are you connecting to (type IP address)?')
+#port = 8888
+host, port = get_my_ip() , 8888
 client = Client(host, port)
 client.do_send({'join': myname})
 
 
 ########## sending prompt to chat agent. #########
-myoptions = raw_input('What brings you here?(choose a number) 1. Complaint, 2. Question, 3. Other ')
-if myoptions == '1':
-	myoptions = 'Complaint'
-elif myoptions == '2':
-	myoptions = 'Question'
-elif myoptions == '3': 
-	myoptions ='Other'
+myoptions ='no'
+while (myoptions == 'no'):
+    myoptions = raw_input('What brings you here?(choose a number) 1. Complaint, 2. Question, 3. Other ')
+    if myoptions == '1':
+    	myoptions = 'Complaint'
+    elif myoptions == '2':
+    	myoptions = 'Question'
+    elif myoptions == '3': 
+    	myoptions ='Other'
+    else:
+        myoptions = 'no'
+        print 'Invalid input, try again'
 	
 #while (myoptions != '1' or myoptions != '2' or myoptions != '3'):  
 #	myoptions = raw_input('What brings you here?(choose a number) 1. Complaint, 2. Question, 3. Other ')

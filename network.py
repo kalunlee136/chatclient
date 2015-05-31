@@ -16,7 +16,6 @@ import socket
 import time
 from time import sleep
 
-
         
 class Handler(asynchat.async_chat):
     
@@ -84,16 +83,16 @@ class Client(Handler):
 
      def on_open(self):
          print "CLIENT ON_OPEN"
+         #self.do_send()
 
      def on_close(self):
          self.close()
-         print "CLIENT ON_CLOSE"
+         print('User has been disconnected from chat')
     
      def on_msg(self, msg):
-         print msg
+        print msg
 
 
-    
 def periodic_poll():
     while 1:
         poll()
@@ -107,18 +106,29 @@ class Listener(asyncore.dispatcher):
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP
         self.bind(('', port))
 
-        self.listen(2)  # max 5 incoming connections at once (Windows' limit)
+        self.listen(5)  # max 5 incoming connections at once (Windows' limit)
         self.model = Model
         
     def handle_accept(self):  # called on the passive side
-        #self.accept() returns values in this format: (socket,(ip address, port))  
+        #self.accept() returns values in this format: (socket,(ip address, port))
+        #h = is an instance of controller class
+        
         accept_result = self.accept()
         if accept_result:  # None if connection blocked or aborted
             sock, (host, port) = accept_result
             h = self.handler_class(host, port, sock)
-            #self.handlers.append(h)
-            self.on_accept(h)
-            h.on_open()
+            if self.model.count < 2: 
+                self.model.count+=1
+                if 'client' in self.model.handlers:
+                    self.model.handlers['agent'] = h
+                else:
+                    self.model.handlers['client'] = h        
+                self.on_accept(h)
+                h.on_open()
+            else:
+                self.model.q.put(h)
+            print self.model.handlers
+            print self.model.q
                           
     # API you can use
     def stop(self):

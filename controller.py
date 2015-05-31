@@ -1,18 +1,21 @@
 #Contains Model and Controller
 #Run this file to start the server.
-from network import Listener, Handler, poll,Client
+from network import Listener, Handler, poll, Client, get_my_ip
 import sys
 from threading import Thread
 import asyncore
+import Queue
 
 #stores the amount of users connected.
 class Model():
     type = ''
-    connections = []
+    count = 0
     #check if agent and user are connected
     def __init__(self):
         self.agent = False
         self.user = False
+        self.handlers = {}
+        self.q = Queue.Queue()
 
     #topic of the chat
     def set_type(self,type):
@@ -21,24 +24,37 @@ class Model():
     def set_agent(self, bool):
         self.agent = bool
         
-    def set_user(self, bool):
+    def set_customer(self, bool):
         self.user = bool
 
 
 handlers = []  # map client handler to user name
-
+q = Queue.Queue()
 ####### server logic/functionality #########
 class ControllerHandler(Handler):
 
     #append client to our list of clients.
     def on_open(self):
-       print "ControllerHandler Open Handler"
-       handlers.append(self)
-      
+        print "ControllerHandler Open Handler"
+        # if len(handlers) < 2:
+        #     handlers.append(self)
+        #     print '=================handlers================='
+        #     print handlers
+        # else:
+        #     print "Chat is full, wait for a bit"
+        #     q.put(self)
+        # print len(handlers)
+        # print q.qsize()
 
     def on_close(self):
         print "ControllerHandler on_close"
         open("log.txt", 'w').close()
+        #handlers.remove(self)
+        self.close()
+        print handlers
+        #self.do_send('You have disconnected from chat')
+      
+        
 
     #server shoots the message back to the clients
     def on_msg(self, msg):
@@ -49,32 +65,17 @@ class ControllerHandler(Handler):
                     if 'prompt' in msg: 
                         c.do_send('Customer is asking about: '+ msg['prompt'])
                         outfile.write('Customer is asking about: '+ msg['prompt'])
+
                     if 'speak' in msg:
                         c.do_send(msg['speak']+':'+' '+msg['txt'])
                         outfile.write('\n'+msg['speak']+':'+' '+msg['txt'])
-            #if 'speak' in msg:
-            #    self.copy += msg['speak']+':'+' '+msg['txt']+ '\t\n'
-            #    print self.copy
                  
 class Controller(Listener, Model):
         
     def on_accept(self, h):
-        print "Controller on_accept"
-        #self.model exists in the Listener class
-        #Does not allow more than 2 people connected.
-        #Checks if there are less than 2 clients connected
-        #if yes, adds that client to our list
-        #if no, does not connect and tells the user the room is full.
-
-        if len(handlers) < 2:
-            #self.model.connections.append(h.addr)
-            self.model.connections.append(h)
-            print 'self.model.connections'
-            print(self.model.connections)
-            
-        else:
-            print "Chat room exceeded amount of connections"
-        
+        print 'CONTROLLER ON ACCEPT'
+        print len(self.model.handlers)
+        print self.model.q.qsize()
         #don't accept multiple agent/viewers
 
 ###########################################
@@ -85,13 +86,4 @@ if __name__ == '__main__':
     model = Model()
     controller = Controller(port, ControllerHandler,model) #uses Listener parameters
     asyncore.loop()
-#     while 1:
-#         poll(timeout=0.05) # in seconds
-#        server.handler_class.collect_incoming_data()
 
-#if __name__ == '__main__':
-    #treats it like the server
-    #port = 8888
-    #server = Listener(port, MyHandler)
-    #while 1:
-        #poll(timeout=0.05) # in seconds
