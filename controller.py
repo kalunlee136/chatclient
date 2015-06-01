@@ -9,29 +9,25 @@ import os
 
 #stores the amount of users connected.
 class Model():
-    type = ''
-    count = 0
+    
     #check if agent and user are connected
     def __init__(self):
-        self.agent = False
-        self.user = False
+        self.conv_type = None
+        self.topic = None
         self.handlers = {}
         self.q = Queue.Queue()
+        self.copy = ''
 
     #topic of the chat
-    def set_type(self,type):
-        self.type = type
+    def set_topic(self,topic):
+        self.topic = topic
         
-    def set_agent(self, bool):
-        self.agent = bool
-        
-    def set_customer(self, bool):
-        self.user = bool
+    def set_conv_type(self, conv_type):
+        self.conv_type = conv_type
+    
 
 
-handlers = {} # map client handler to user name
-q = Queue.Queue()
-copy = ''
+model = Model
 
 
 ####### server logic/functionality #########
@@ -49,40 +45,55 @@ class ControllerHandler(Handler):
 
     def on_close(self):
         print "ControllerHandler on_close"
-        a = q.get()
-        handlers['client'] = a
+        
+        a = model.q.get()
+        
+        model.handlers['client'] = a
         #self.log.close()
         self.close()
     
     #server shoots the message back to the clients
     def on_msg(self, msg):
+        
         print ("SENDING Back")
+        
         with open('log.txt', 'a') as outfile:
-            if self in handlers.values():
+            if self in model.handlers.values():
                 with open('log.txt', 'a') as outfile:
-                    for c in handlers:
-                        if handlers[c] != self:
-                            if 'prompt' in msg:
-                                handlers[c].do_send('Customer is asking about: '+ msg['prompt'])
-                                outfile.write('Customer is asking about: '+ msg['prompt'])
-
+                    for c in model.handlers:
+                        if 'Conversation Type' in msg:
+                            model.set_conv_type(msg['Conversation Type'])
+                        elif 'Topic' in msg:
+                            model.set_topic(msg['Topic'])
+                        elif 'Info' in msg:
+                                model.handlers['agent'].do_send(msg['Info']+' \n'+ 'Conversation Type: ' + model.conv_type + '\nTopic: ' + model.topic)
+                                outfile.write('\n'+ msg['Info']+' \n'+ 'Conversation Type: ' + model.conv_type + ' \n Topic: ' + model.topic)  
+                        if model.handlers[c] != self:
+                            
                             if 'speak' in msg:
-                                handlers[c].do_send(msg['speak']+':'+' '+msg['txt'])
+                                model.handlers[c].do_send(msg['speak']+':'+' '+msg['txt'])
                                 outfile.write('\n'+msg['speak']+':'+' '+msg['txt'])
-
-class Controller(Listener, Model):
+                            
+                        
+                                
+                        
+                            
+class Controller(Listener):
     
     #add new connections to our handlers dict
     def on_accept(self, host):
         #don't accept multiple agent/viewers
-        if len(handlers) < 2:
-            if 'client' in handlers.keys():
-                handlers['agent'] = host
+        if len(model.handlers) < 2:
+            self.active = True
+            if 'client' in model.handlers.keys():
+                model.handlers['agent'] = host
             else:
-                handlers['client'] = host   
+                model.handlers['client'] = host 
         else:
             host.do_send("Chat is full, wait for a bit")
-            q.put(host)
+            model.q.put(host)
+            
+        
 
 
 ###########################################
@@ -91,6 +102,6 @@ if __name__ == '__main__':
     print("Server running")
     port = 8888
     model = Model()
-    controller = Controller(port, ControllerHandler,model) #uses Listener parameters
+    controller = Controller(port, ControllerHandler) #uses Listener parameters
     asyncore.loop()
 

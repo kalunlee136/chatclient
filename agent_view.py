@@ -17,7 +17,7 @@ thread.daemon = True  # die when the main thread dies
 thread.start()
 
 client.do_send({'speak': 'agent', 'txt': 'Chat agent has connected'})
-
+client.do_send({'Info': 'Model'})
 while 1:
     mytxt = sys.stdin.readline().rstrip()
     client.do_send({'speak': 'agent', 'txt': mytxt})
