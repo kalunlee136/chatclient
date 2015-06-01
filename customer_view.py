@@ -48,13 +48,13 @@ thread.start()
 
 while 1:
     mytxt = sys.stdin.readline().rstrip()
-
     #customer console options
     if mytxt == ':q':
         print client
-    	client.on_close()
+        client.on_close()
     elif mytxt == ':s':
-    	print "Your conversation has been logged."
+        client.copy = False
+        print 'Copy of chat is saved'
     elif mytxt == ':e':
     	print "Trivia: Did you know cats have 9 lives?" 
     else: 	 

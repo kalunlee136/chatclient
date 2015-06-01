@@ -83,11 +83,16 @@ class Client(Handler):
 
      def on_open(self):
          print "CLIENT ON_OPEN"
-         print self
+         self.copy = True
 
      def on_close(self):
-         self.close()
+         if self.copy:
+            try:
+                os.remove('log.txt')
+            except: 
+                pass
          print('User has been disconnected from chat')
+         self.close()
     
      def on_msg(self, msg):
         print msg
